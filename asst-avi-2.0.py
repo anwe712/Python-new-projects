@@ -1,125 +1,69 @@
-#this is our Avi-the A.I assistant program
-#this program is made by using python 3.7.3
-#this program is made by using the pyttsx3 module
-#lets import the pyttsx3 module
+import pygame as sr
 import pyttsx3
-#lets import the espeak module
-
-#lets import the datetime module
 import datetime
-#lets import the wikipedia module
-import wikipedia
-#lets import the webbrowser module
 import webbrowser
-#lets import the os module
 import os
-#lets import the smtplib module
-import smtplib
-#lets import the speech_recognition module
-import speech_recognition as sr
 
+# Initialize the text-to-speech engine
+engine = pyttsx3.init()
 
-
-#lets make a variable for the engine
-engine = pyttsx3.init('espeak')
-
-#lets make a variable for the voices
-voices = engine.getProperty('voices')
-#lets make a variable for the voice
-engine.setProperty('voice', voices[10].id)
-
-#lets make a function for the speak
-def speak(audio):
-    engine.say(audio)
+# Define a function to speak the given text
+def speak(text):
+    engine.say(text)
     engine.runAndWait()
 
-def wishMe():
-    hour = int(datetime.datetime.now().hour)
-    if hour>=0 and hour<12:
-        speak("Good Morning!")
-
-    elif hour>=12 and hour<18:
-        speak("Good Afternoon!")   
-
-    else:
-        speak("Good Evening!")  
-
-    speak("I am Avi-your virtual assistant , Please tell me how may I help you")       
-
-def takeCommand():
-    #It takes microphone input from the user and returns string output
-
+# Define a function to listen to the user's voice command
+def listen():
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("Listening...")
-        r.pause_threshold = 300
+        r.pause_threshold = 1
         audio = r.listen(source)
 
     try:
-        print("Recognizing...")    
-        query = r.recognize_google(audio, language='en-in')
-        print(f"User said: {query}\n")
-
+        print("Recognizing...")
+        query = r.recognize_google(audio, language='en-US')
+        print(f"You said: {query}\n")
     except Exception as e:
-        # print(e)    
-        print("Say that again please...")  
+        print("Sorry, please say that again...")
         return "None"
-    return query
+    return query.lower()
 
-def sendEmail(to, content):
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.ehlo()
-    server.starttls()
-    server.login('youremail@gmail.com', 'your-password')
-    server.sendmail('youremail@gmail.com', to, content)
-    server.close()
+# Define the main function to run the voice assistant
+def run_voice_assistant():
+    speak("Hello, how can I help you today?")
 
-if __name__ == "__main__":
-    wishMe()
     while True:
-    # if 1:
-        query = takeCommand().lower()
+        command = listen()
 
-        # Logic for executing tasks based on query
-        if 'wikipedia' in query:
-            speak('Searching Wikipedia...')
-            query = query.replace("wikipedia", "")
-            results = wikipedia.summary(query, sentences=2)
-            speak("According to Wikipedia")
-            print(results)
-            speak(results)
+        # Tell the time
+        if 'time' in command:
+            now = datetime.datetime.now()
+            time = now.strftime("%H:%M:%S")
+            speak(f"The time is {time}")
 
-        elif 'open youtube' in query:
-            webbrowser.open("youtube.com")
+        # Tell the weather
+        elif 'weather' in command:
+            # You can replace this with an API call to get the actual weather data
+            speak("The weather is sunny today")
 
-        elif 'open google' in query:
-            webbrowser.open("google.com")
+        # Open a website
+        elif 'open' in command:
+            website = command.replace('open ', '')
+            speak(f"Opening {website}")
+            webbrowser.open_new_tab(f"https://www.{website}.com")
 
-        elif 'open stackoverflow' in query:
-            webbrowser.open("stackoverflow.com")   
-
-
-        elif 'play music' in query:
-            music_dir = 'D:\\Non Critical\\songs\\Favorite Songs2'
+        # Play music
+        elif 'play music' in command:
+            music_dir = 'C:/Users/Public/Music/Sample Music' # Replace with your music directory
             songs = os.listdir(music_dir)
-            print(songs)    
             os.startfile(os.path.join(music_dir, songs[0]))
 
-        elif 'the time' in query:
-            strTime = datetime.datetime.now().strftime("%H:%M:%S")    
-            speak(f"Sir, the time is {strTime}")
+        # Exit the program
+        elif 'exit' in command:
+            speak("Goodbye!")
+            break
 
-        elif 'open code' in query:
-            codePath = "C:\\Users\\Haris\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
-            os.startfile(codePath)
+if __name__ == "__main__":
+    run_voice_assistant()
 
-        elif 'email to harry' in query:
-            try:
-                speak("What should I say?")
-                content = takeCommand()
-                to = "harryyourEmail@gmail.com"    
-                sendEmail(to, content)
-                speak("Email has been sent!")
-            except Exception as e:
-                print(e)
-                speak("Sorry my friend harry bhai. I am not able to send this email")    
